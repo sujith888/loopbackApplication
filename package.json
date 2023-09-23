@@ -29,6 +29,7 @@
     "docker:run": "docker run -p 3000:3000 -d loopbackapplication",
     "premigrate": "npm run build",
     "migrate": "node ./dist/migrate",
+    "seeddata":"node ./dist/seedData",
     "preopenapi-spec": "npm run build",
     "openapi-spec": "node ./dist/openapi-spec",
     "prestart": "npm run rebuild",
