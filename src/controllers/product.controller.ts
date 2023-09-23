@@ -1,19 +1,9 @@
+import {repository} from '@loopback/repository';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  del,
   get,
   getModelSchemaRef,
   param,
-  patch,
   post,
-  put,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -51,106 +41,6 @@ export class ProductController {
     return this.productRepository.create(product);
   }
 
-  @get('/products/count')
-  @response(200, {
-    description: 'Product model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(@param.where(Product) where?: Where<Product>): Promise<Count> {
-    return this.productRepository.count(where);
-  }
-
-  @get('/products')
-  @response(200, {
-    description: 'Array of Product model instances',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'array',
-          items: getModelSchemaRef(Product, {includeRelations: true}),
-        },
-      },
-    },
-  })
-  async find(
-    @param.filter(Product) filter?: Filter<Product>,
-  ): Promise<Product[]> {
-    return this.productRepository.find(filter);
-  }
-
-  @patch('/products')
-  @response(200, {
-    description: 'Product PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Product, {partial: true}),
-        },
-      },
-    })
-    product: Product,
-    @param.where(Product) where?: Where<Product>,
-  ): Promise<Count> {
-    return this.productRepository.updateAll(product, where);
-  }
-
-  @get('/products/{id}')
-  @response(200, {
-    description: 'Product model instance',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Product, {includeRelations: true}),
-      },
-    },
-  })
-  async findById(
-    @param.path.number('id') id: number,
-    @param.filter(Product, {exclude: 'where'})
-    filter?: FilterExcludingWhere<Product>,
-  ): Promise<Product> {
-    return this.productRepository.findById(id, filter);
-  }
-
-  @patch('/products/{id}')
-  @response(204, {
-    description: 'Product PATCH success',
-  })
-  async updateById(
-    @param.path.number('id') id: number,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Product, {partial: true}),
-        },
-      },
-    })
-    product: Product,
-  ): Promise<void> {
-    await this.productRepository.updateById(id, product);
-  }
-
-  @put('/products/{id}')
-  @response(204, {
-    description: 'Product PUT success',
-  })
-  async replaceById(
-    @param.path.number('id') id: number,
-    @requestBody() product: Product,
-  ): Promise<void> {
-    await this.productRepository.replaceById(id, product);
-  }
-
-  @del('/products/{id}')
-  @response(204, {
-    description: 'Product DELETE success',
-  })
-  async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.productRepository.deleteById(id);
-  }
-
   @get('/downloadProductsJSON', {
     responses: {
       '200': {
@@ -166,9 +56,15 @@ export class ProductController {
       },
     },
   })
-  async downloadProductsJSON(): Promise<Product[]> {
-    // Fetch all Product records from the database
-    const products: Product[] = await this.productRepository.find();
+  async downloadProductsJSON(
+    @param.query.number('page', {default: 1}) page: number, // Fetch all Product records from the database
+  ): Promise<Product[]> {
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const products: Product[] = await this.productRepository.find({
+      limit,
+      offset,
+    });
     // Return the JSON data
     return products;
   }
@@ -235,10 +131,16 @@ export class ProductController {
       },
     },
   })
-  async downloadProductsCSV() // @par.number('page') page: number = 1,
-  : Promise<string> {
+  async downloadProductsCSV(
+    @param.query.number('page', {default: 1}) page: number,
+  ): Promise<string> {
+    const limit = 10;
+    const offset = (page - 1) * limit;
     // Fetch all Product records from the database
-    const products: Product[] = await this.productRepository.find();
+    const products: Product[] = await this.productRepository.find({
+      limit,
+      offset,
+    });
 
     // Define CSV header
     const header = [
