@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {createObjectCsvStringifier} from 'csv-writer';
 import {Product} from '../models';
 import {ProductRepository} from '../repositories';
 export interface PriceUpdate {
